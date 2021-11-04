@@ -4,6 +4,7 @@ import json
 import locale
 import sys
 
+car_sales_json_location = "/Users/waylandchin/source/week3/automating-real-world-tasks-with-python-week-3/car_sales.json"
 
 def load_data(filename):
   """Loads the contents of filename as a JSON file."""
@@ -16,25 +17,6 @@ def format_car(car):
   """Given a car dictionary, returns a nicely formatted name."""
   return "{} {} ({})".format(
       car["car_make"], car["car_model"], car["car_year"])
-
-
-car_sales ={}
-def calculate_sales_per_year(car, total_sales):
-    if(car["car_year"] in car_sales):
-        car_sales[car["car_year"]]=car_sales[car["car_year"]]+total_sales
-    else:
-        car_sales[car["car_year"]]=total_sales
-
-
-def returns_most_popular_car_year():
-    key=''
-    value=0
-    for k in car_sales:
-        if(car_sales[k]>value):
-            key = k
-            value = car_sales[k]
-    return "The most popular year was "+str(key)+" with "+str(value)+" sales."
-
 
 def process_data(data):
   """Analyzes the data, looking for maximums.
@@ -57,14 +39,38 @@ def process_data(data):
     if item['total_sales'] > max_sales['total_sales']:
       max_sales = item
     # TODO: also handle most popular car_year
-    calculate_sales_per_year(item["car"],item["total_sales"])
+    cars_sold_per_year = {}
+    for item in data:
+      key = item['car']['car_year']
+      value = item['total_sales']
+      if key not in cars_sold_per_year:
+        cars_sold_per_year[key] = value
+      else:
+        cars_sold_per_year[key] += value
+
+    #output = json.dumps(cars_sold_per_year, indent = 2, sort_keys = True)
+    #print(output)
+  
+  max_key = max(cars_sold_per_year, key = cars_sold_per_year.get)
+  all_values = cars_sold_per_year.values()
+  max_value = max(all_values)
+
+  #print(max_key)
+  #print(max_value)
+
+  key_list = list(cars_sold_per_year.keys())
+  val_list = list(cars_sold_per_year.values())
+
+  position = val_list.index(max_value)
+  top_year = key_list[position]
 
   summary = [
     "The {} generated the most revenue: ${}".format(
       format_car(max_revenue["car"]), max_revenue["revenue"]),
     "The {} had the most sales: {}".format(
       format_car(max_sales["car"]), max_sales["total_sales"]),
-    returns_most_popular_car_year()
+    "The most popular year was {} with {} sales.".format(
+      top_year, max_value)
   ]
 
   return summary
@@ -80,7 +86,7 @@ def cars_dict_to_table(car_data):
 
 def main(argv):
   """Process the JSON data and generate a full report out of it."""
-  data = load_data("car_sales.json")
+  data = load_data(car_sales_json_location)
   summary = process_data(data)
   print(summary)
   # TODO: turn this into a PDF report
