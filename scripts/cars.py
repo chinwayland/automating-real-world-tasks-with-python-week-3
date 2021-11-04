@@ -3,6 +3,14 @@
 import json
 import locale
 import sys
+import reports
+import emails
+import os
+import collections
+import operator
+
+
+
 
 car_sales_json_location = "/Users/waylandchin/source/week3/automating-real-world-tasks-with-python-week-3/car_sales.json"
 
@@ -48,15 +56,8 @@ def process_data(data):
       else:
         cars_sold_per_year[key] += value
 
-    #output = json.dumps(cars_sold_per_year, indent = 2, sort_keys = True)
-    #print(output)
-  
-  max_key = max(cars_sold_per_year, key = cars_sold_per_year.get)
   all_values = cars_sold_per_year.values()
   max_value = max(all_values)
-
-  #print(max_key)
-  #print(max_value)
 
   key_list = list(cars_sold_per_year.keys())
   val_list = list(cars_sold_per_year.values())
@@ -90,8 +91,20 @@ def main(argv):
   summary = process_data(data)
   print(summary)
   # TODO: turn this into a PDF report
-
+  filename = '/tmp/cars.pdf' 
+  title = "Sales summary for last month"
+  additional_info = "<br/>".join(summary)
+  table_data = cars_dict_to_table(data)
+  reports.generate(filename, title, additional_info, table_data)
   # TODO: send the PDF report as an email attachment
+  sender = "automation@example.com"
+  recipient = "{}@example.com".format(os.environ.get('USER'))
+  subject = "Sales summary for last month"
+  body =  "\n".join(summary)
+  attachment_path =  "/tmp/cars.pdf"
+  message = emails.generate(sender, recipient, subject, body, attachment_path)
+  emails.send(message)
+
 
 
 if __name__ == "__main__":
